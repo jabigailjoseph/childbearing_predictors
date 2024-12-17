@@ -1,0 +1,442 @@
+# Install necessary package if not already installed
+if (!require("SAScii")) install.packages("SAScii")
+
+library(SAScii)
+
+# Check the working directory (optional)
+print(getwd())
+
+# Provide the correct paths for the .dat and .sas files
+#dat_file <- "2013_2015_MaleData (1).dat"
+#sas_file <- "2013_2015_MaleSetup (1).sas"
+
+dat_file <- "C:/Users/ajose/Downloads/2013_2015_MaleData (1).dat"
+sas_file <- "C:/Users/ajose/Downloads/2013_2015_MaleSetup (1).sas"
+
+# Read the data using SAScii
+data <- read.SAScii(dat_file, sas_file)
+
+# Optional: Preview the first 5000 rows
+data_preview <- read.SAScii(dat_file, sas_file, begin = 1, end = 5000)
+
+# Check the first few rows of the dataset
+head(data)
+
+# Explore missing values
+colSums(is.na(data))
+
+# View the data structure and summary
+str(data)
+summary(data)
+
+# Save the dataset as an RData file for easy reloading
+save(data, file = "MaleData.RData")
+
+
+
+
+
+
+# Load the saved dataset back into R
+load("MaleData.RData")
+
+# 1. Load the dataset
+load("MaleData.RData")
+
+
+
+
+# 2. Filter and Recode Variables
+
+# (a) Create a binary variable: HasChildren
+# Use HHKIDTYP to determine if a respondent has children
+data$HasChildren <- ifelse(data$HHKIDTYP %in% c(1, 2), 1, 0)
+
+# (b) Recode MARSTAT into binary categories
+data$MARSTAT_BINARY <- factor(ifelse(data$MARSTAT %in% c(1, 2), 
+                                     "Married/Cohabiting", 
+                                     ifelse(data$MARSTAT %in% c(3, 4, 5, 6), "Other", "Unknown")))
+
+# (c) Recode HAVEDEG (Has College Degree)
+data$HAVEDEG_BINARY <- factor(ifelse(data$HAVEDEG == 1, "Yes", 
+                                     ifelse(data$HAVEDEG == 5, "No", "Unknown")))
+
+# (d) Recode EARN (Income Level)
+data$EARN_BINARY <- factor(ifelse(data$EARN >= 8, "HighIncome", 
+                                  ifelse(data$EARN < 8, "LowIncome", "Unknown")))
+
+# (e) Recode LIVTOGWF (Cohabited Before Marriage)
+data$LIVTOGWF_BINARY <- factor(ifelse(data$LIVTOGWF == 1, "Yes", 
+                                      ifelse(data$LIVTOGWF == 5, "No", "Unknown")))
+
+# (f) Recode COVER12 (Health Coverage)
+data$COVER12_BINARY <- factor(ifelse(data$COVER12 == 1, "Yes", 
+                                     ifelse(data$COVER12 == 5, "No", "Unknown")))
+
+# (g) Recode ORIENT (Sexual Orientation)
+data$ORIENT_BINARY <- factor(ifelse(data$ORIENT == 1, "Heterosexual", 
+                                    ifelse(data$ORIENT %in% c(2, 3), "Other", "Unknown")))
+
+# (h) Recode SEDWHBC (Received Birth Control Instruction)
+data$SEDWHBC_BINARY <- factor(ifelse(data$SEDWHBC == 1, "Yes", 
+                                     ifelse(data$SEDWHBC == 5, "No", "Unknown")))
+
+# 3. Filter the Dataset
+# Keep only rows with non-missing and non-unknown values across all variables
+data_filtered <- data[data$MARSTAT_BINARY %in% c("Married/Cohabiting", "Other") &
+                        data$HAVEDEG_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$EARN_BINARY %in% c("HighIncome", "LowIncome", "Unknown") &
+                        data$LIVTOGWF_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$COVER12_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$ORIENT_BINARY %in% c("Heterosexual", "Other", "Unknown") &
+                        data$SEDWHBC_BINARY %in% c("Yes", "No", "Unknown") &
+                        !is.na(data$HasChildren), ]
+
+# 4. Verify the Filtered Dataset
+# Check the size of the filtered dataset
+cat("Filtered dataset size:", nrow(data_filtered), "\n")
+
+# Check for missing values in the filtered dataset
+colSums(is.na(data_filtered[, c("MARSTAT_BINARY", "HAVEDEG_BINARY", "EARN_BINARY", 
+                                "LIVTOGWF_BINARY", "COVER12_BINARY", 
+                                "ORIENT_BINARY", "SEDWHBC_BINARY", "HasChildren")]))
+
+# Start with the full dataset
+data_step <- data
+
+# Sequentially filter and print dataset size at each step
+cat("Initial dataset size:", nrow(data_step), "\n")
+
+# Filter by MARSTAT_BINARY
+data_step <- data_step[data_step$MARSTAT_BINARY %in% c("Married/Cohabiting", "Other"), ]
+cat("After MARSTAT_BINARY:", nrow(data_step), "\n")
+
+# Filter by HAVEDEG_BINARY
+data_step <- data_step[data_step$HAVEDEG_BINARY %in% c("Yes", "No", "Unknown"), ]
+cat("After HAVEDEG_BINARY:", nrow(data_step), "\n")
+
+# Filter by EARN_BINARY
+data_step <- data_step[data_step$EARN_BINARY %in% c("HighIncome", "LowIncome", "Unknown"), ]
+cat("After EARN_BINARY:", nrow(data_step), "\n")
+
+# Filter by LIVTOGWF_BINARY
+data_step <- data_step[data_step$LIVTOGWF_BINARY %in% c("Yes", "No", "Unknown"), ]
+cat("After LIVTOGWF_BINARY:", nrow(data_step), "\n")
+
+# Filter by COVER12_BINARY
+data_step <- data_step[data_step$COVER12_BINARY %in% c("Yes", "No", "Unknown"), ]
+cat("After COVER12_BINARY:", nrow(data_step), "\n")
+
+# Filter by ORIENT_BINARY
+data_step <- data_step[data_step$ORIENT_BINARY %in% c("Heterosexual", "Other", "Unknown"), ]
+cat("After ORIENT_BINARY:", nrow(data_step), "\n")
+
+# Filter by SEDWHBC_BINARY
+data_step <- data_step[data_step$SEDWHBC_BINARY %in% c("Yes", "No", "Unknown"), ]
+cat("After SEDWHBC_BINARY:", nrow(data_step), "\n")
+
+# Filter by HasChildren
+data_step <- data_step[!is.na(data_step$HasChildren), ]
+cat("After HasChildren:", nrow(data_step), "\n")
+
+# Filter the dataset, excluding SEDWHBC_BINARY
+data_filtered <- data[data$MARSTAT_BINARY %in% c("Married/Cohabiting", "Other") &
+                        data$HAVEDEG_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$EARN_BINARY %in% c("HighIncome", "LowIncome", "Unknown") &
+                        data$LIVTOGWF_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$COVER12_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$ORIENT_BINARY %in% c("Heterosexual", "Other", "Unknown") &
+                        !is.na(data$HasChildren), ]
+
+# Check the final dataset size
+cat("Filtered dataset size after excluding SEDWHBC_BINARY:", nrow(data_filtered), "\n")
+
+
+data$MARSTAT_BINARY <- factor(ifelse(data$MARSTAT %in% c(1, 2), 
+                                     "Married/Cohabiting", 
+                                     ifelse(data$MARSTAT %in% c(3, 4, 5, 6), "Other", "Unknown")))
+
+table(data$MARSTAT, useNA = "ifany")
+
+data_filtered <- data[data$MARSTAT_BINARY %in% c("Married/Cohabiting", "Other") &
+                        data$HAVEDEG_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$EARN_BINARY %in% c("HighIncome", "LowIncome", "Unknown") &
+                        data$COVER12_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$ORIENT_BINARY %in% c("Heterosexual", "Other", "Unknown") &
+                        !is.na(data$HasChildren), ]
+
+table(data_filtered$MARSTAT_BINARY, useNA = "ifany")
+
+# data dimensions
+dim(data_filtered)
+
+
+# Start with MARSTAT_BINARY
+model_1 <- glm(HasChildren ~ MARSTAT_BINARY, data = data_filtered, family = "binomial")
+summary(model_1)
+
+# Model 2
+model_2 <- glm(HasChildren ~ MARSTAT_BINARY + HAVEDEG_BINARY, data = data_filtered, family = "binomial")
+summary(model_2)
+
+# assess confounding
+# Compare coefficients of MARSTAT_BINARY between models
+summary(model_1)$coefficients
+summary(model_2)$coefficients
+
+# did the added variable improve the model?
+anova(model_1, model_2, test = "Chisq")
+
+# Model 3!!
+model_3 <- glm(HasChildren ~ MARSTAT_BINARY + HAVEDEG_BINARY + EARN_BINARY, data = data_filtered, family = "binomial")
+summary(model_3)
+
+# multicollinearity
+vif(model_3)
+
+# confounding
+summary(model_2)$coefficients
+summary(model_3)$coefficients
+
+# improvement
+anova(model_2, model_3, test = "Chisq")
+
+
+data_filtered <- data[data$MARSTAT_BINARY %in% c("Married/Cohabiting", "Other") &
+                        data$HAVEDEG_BINARY %in% c("Yes", "No") &
+                        data$EARN_BINARY %in% c("HighIncome", "LowIncome") &
+                        data$COVER12_BINARY %in% c("Yes", "No", "Unknown") &
+                        data$ORIENT_BINARY %in% c("Heterosexual", "Other", "Unknown") &
+                        !is.na(data$HasChildren), ]
+cat("Filtered dataset size after excluding LIVTOGWF_BINARY:", nrow(data_filtered), "\n")
+
+table(data_filtered$MARSTAT_BINARY, useNA = "ifany")
+table(data_filtered$HAVEDEG_BINARY, useNA = "ifany")
+table(data_filtered$EARN_BINARY, useNA = "ifany")
+table(data_filtered$COVER12_BINARY, useNA = "ifany")
+table(data_filtered$ORIENT_BINARY, useNA = "ifany")
+table(data_filtered$HasChildren, useNA = "ifany")
+
+# Model 4 let's gooooooo!!
+model_4 <- glm(HasChildren ~ MARSTAT_BINARY + HAVEDEG_BINARY + EARN_BINARY + COVER12_BINARY, data = data_filtered, family = "binomial")
+summary(model_4)
+
+# Model 5
+model_5 <- glm(HasChildren ~ MARSTAT_BINARY + HAVEDEG_BINARY + EARN_BINARY + COVER12_BINARY + ORIENT_BINARY, data = data_filtered, family = "binomial")
+summary(model_5)
+
+# multicollinearity for all models 
+vif(model_5)
+
+# model improvements
+aic_model_1 <- AIC(model_1)
+aic_model_2 <- AIC(model_2)
+aic_model_3 <- AIC(model_3)
+aic_model_4 <- AIC(model_4)
+aic_model_5 <- AIC(model_5)
+
+cat("AIC for model_1:", aic_model_1, "\n")
+cat("AIC for model_2:", aic_model_2, "\n")
+cat("AIC for model_3:", aic_model_3, "\n")
+cat("AIC for model_4:", aic_model_4, "\n")
+cat("AIC for model_5:", aic_model_5, "\n")
+
+# confounding for all variables
+# Define the variables
+outcome_var <- "HasChildren"
+predictors <- c("MARSTAT_BINARY", "HAVEDEG_BINARY", "EARN_BINARY", 
+                "COVER12_BINARY", "ORIENT_BINARY")
+
+# Loop through each variable
+for (var in predictors) {
+  cat("\nAssessing confounding for variable:", var, "\n")
+  
+  # Base model with the variable alone
+  base_formula <- as.formula(paste(outcome_var, "~", var))
+  base_model <- glm(base_formula, data = data_filtered, family = "binomial")
+  
+  # Full model with all variables
+  full_formula <- as.formula(paste(outcome_var, "~", paste(predictors, collapse = " + ")))
+  full_model <- glm(full_formula, data = data_filtered, family = "binomial")
+  
+  # Perform Chi-Square test
+  test <- anova(base_model, full_model, test = "Chisq")
+  
+  # Print results
+  print(test)
+}
+
+
+
+
+
+# Finally - comparison to baseline
+
+# Majority class baseline model
+baseline_prediction <- ifelse(mean(data_filtered$HasChildren) > 0.5, 1, 0)
+
+# Compare the baseline to actual outcomes
+baseline_accuracy <- mean(data_filtered$HasChildren == baseline_prediction)
+cat("Baseline model accuracy:", baseline_accuracy, "\n")
+
+# Fit the full model
+full_model <- glm(HasChildren ~ MARSTAT_BINARY + HAVEDEG_BINARY + EARN_BINARY +
+                    COVER12_BINARY + ORIENT_BINARY, 
+                  data = data_filtered, 
+                  family = "binomial")
+
+# Predict probabilities
+predicted_probabilities <- predict(full_model, type = "response")
+
+# Use a threshold (e.g., 0.5) to convert probabilities to binary predictions
+threshold <- 0.5
+predicted_classes <- ifelse(predicted_probabilities > threshold, 1, 0)
+
+# Calculate accuracy for the full model
+full_model_accuracy <- mean(data_filtered$HasChildren == predicted_classes)
+cat("Full model accuracy:", full_model_accuracy, "\n")
+
+# Install necessary library
+if (!require("pROC")) install.packages("pROC")
+library(pROC)
+
+# AUC for the full model
+roc_curve <- roc(data_filtered$HasChildren, predicted_probabilities)
+auc_full_model <- auc(roc_curve)
+cat("Full model AUC:", auc_full_model, "\n")
+
+# Compare metrics
+cat("Baseline model accuracy:", baseline_accuracy, "\n")
+cat("Full model accuracy:", full_model_accuracy, "\n")
+cat("Full model AUC:", auc_full_model, "\n")
+
+plot(roc_curve, main = "ROC Curve for Full Model")
+
+
+
+# Calculate odds ratios and 95% confidence intervals
+odds_ratios <- exp(coef(model_5))
+conf_intervals <- exp(confint(model_5))
+
+# Combine results into a readable table
+impact_table <- data.frame(
+  Factor = names(odds_ratios),
+  OddsRatio = odds_ratios,
+  CI_Lower = conf_intervals[, 1],
+  CI_Upper = conf_intervals[, 2]
+)
+
+# Print the table
+print(impact_table)
+
+
+
+
+
+# Fit the full logistic regression model
+full_model <- glm(HasChildren ~ MARSTAT_BINARY + HAVEDEG_BINARY + EARN_BINARY +
+                    COVER12_BINARY + ORIENT_BINARY, 
+                  data = data_filtered, 
+                  family = "binomial")
+
+# model_5 <- glm(HasChildren ~ MARSTAT_BINARY + HAVEDEG_BINARY + EARN_BINARY + COVER12_BINARY + ORIENT_BINARY, data = data_filtered, family = "binomial")
+
+
+# Calculate odds ratios
+odds_ratios <- exp(coef(full_model))
+
+# Calculate 95% confidence intervals for the odds ratios
+conf_intervals <- exp(confint(full_model))
+
+# Combine results into a table
+impact_table <- data.frame(
+  Factor = names(odds_ratios),
+  OddsRatio = odds_ratios,
+  CI_Lower = conf_intervals[, 1],
+  CI_Upper = conf_intervals[, 2]
+)
+
+# Print the table
+print(impact_table)
+
+
+# visuals!!
+plot(roc_curve, main = "ROC Curve for Full Model")
+
+
+install.packages("ggplot2")
+library(ggplot2)
+
+aic_data <- data.frame(
+  Model = c("Model 1", "Model 2", "Model 3", "Model 4", "Model 5"),
+  AIC = c(aic_model_1, aic_model_2, aic_model_3, aic_model_4, aic_model_5)
+)
+ggplot(aic_data, aes(x = Model, y = AIC)) +
+  geom_line(group = 1, color = "blue") +
+  geom_point(size = 3, color = "red") +
+  labs(title = "AIC Values Across Models", y = "AIC", x = "Model")
+
+
+
+# case study
+
+# Define a data frame with different scenarios
+case_study_data <- data.frame(
+  MARSTAT_BINARY = c("Married/Cohabiting", "Other"),
+  HAVEDEG_BINARY = c("Yes", "No"),
+  EARN_BINARY = c("HighIncome", "LowIncome"),
+  COVER12_BINARY = c("Yes", "No"),
+  ORIENT_BINARY = c("Heterosexual", "Heterosexual")
+)
+
+# View the case study data
+print(case_study_data)
+
+
+# Predict probabilities for the case study data
+case_study_data$Predicted_Prob <- predict(full_model, newdata = case_study_data, type = "response")
+
+# View the predictions
+print(case_study_data)
+
+
+
+
+# Install necessary packages if not already installed
+if (!require("knitr")) install.packages("knitr")
+if (!require("gt")) install.packages("gt")
+
+# Load libraries
+library(knitr)
+library(gt)
+
+# Data for the prediction table
+prediction_table <- data.frame(
+  MARSTAT_BINARY = c("Married/Cohabiting", "Other"),
+  HAVEDEG_BINARY = c("Yes", "No"),
+  EARN_BINARY = c("HighIncome", "LowIncome"),
+  COVER12_BINARY = c("Yes", "No"),
+  ORIENT_BINARY = c("Heterosexual", "Heterosexual"),
+  Predicted_Prob = c(0.6105994, 0.04218908)
+)
+
+# Create a nice table using kable
+knitr::kable(prediction_table, caption = "Prediction Results for Case Study") 
+
+# Alternatively, using gt for a more polished table
+prediction_table %>%
+  gt() %>%
+  tab_header(
+    title = "Prediction Results for Case Study"
+  )
+
+  
+
+
+
+
+
+
+
+
+
