@@ -61,11 +61,6 @@ The full logistic regression model outperformed the baseline model significantly
 
 
 
-### 📈 **Visuals**
-
-#### **ROC Curve for Full Model**  
-![ROC Curve](./path_to_roc_image.png)  
-
 #### **Odds Ratios Summary Table**  
 
 | Variable          | Odds Ratio | CI Lower | CI Upper |
