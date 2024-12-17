@@ -4,8 +4,8 @@
 #### According to the White House (2023), the CDC reported that the U.S. birth rate had fallen to its lowest level in history1. Researchers have identified multiple contributing factors to the decades-long decline in birth rates, including:
 
 ### Social and economic disparities
-#### Increased age at parenthood
-#### Changing societal norms
+Increased age at parenthood
+Changing societal norms
 #### This report investigates how various factors impact the likelihood of individuals in the U.S. having children. By identifying the most impactful predictors, researchers and policymakers can propose effective policies that provide support for Americans who choose to have children.
 
 ### Project Objective
